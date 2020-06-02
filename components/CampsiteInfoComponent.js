@@ -1,10 +1,11 @@
 import React, { Component } from "react";
 import { Text, View, ScrollView, FlatList } from "react-native";
-import { Card } from "react-native-elements";
+import { Card, Icon } from "react-native-elements";
 import { CAMPSITES } from "../shared/campsites";
 import { COMMENTS } from "../shared/comments";
 
-function RenderCampsite({ campsite }) {
+function RenderCampsite(props) {
+  const { campsite } = props;
   if (campsite) {
     return (
       <Card
@@ -12,6 +13,18 @@ function RenderCampsite({ campsite }) {
         image={require("./images/react-lake.jpg")}
       >
         <Text style={{ margin: 10 }}>{campsite.description}</Text>
+        <Icon
+          name={props.favorite ? "heart" : "heart-o"}
+          type="font-awesome"
+          color="#f50"
+          raised
+          reverse
+          onPress={() =>
+            props.favorite
+              ? console.log("Already set as favorite")
+              : props.markFavorite()
+          }
+        />
       </Card>
     );
   }
@@ -23,8 +36,10 @@ function RenderComments({ comments }) {
     return (
       <View style={{ margin: 10 }}>
         <Text style={{ fontSize: 14 }}>{item.text}</Text>
-        <Text style={{ fontSize: 12 }}>{item.rating}</Text>
-        <Text style={{ fontSize: 12 }}>{`--${item.author}, ${item.date}`}</Text>
+        <Text style={{ fontSize: 12 }}>{item.rating} Stars</Text>
+        <Text
+          style={{ fontSize: 12 }}
+        >{`-- ${item.author}, ${item.date}`}</Text>
       </View>
     );
   };
@@ -46,7 +61,12 @@ class CampsiteInfo extends Component {
     this.state = {
       campsites: CAMPSITES,
       comments: COMMENTS,
+      favorite: false,
     };
+  }
+
+  markFavorite() {
+    this.setState({ favorite: true });
   }
 
   static navigationOptions = {
@@ -54,16 +74,20 @@ class CampsiteInfo extends Component {
   };
 
   render() {
+    const campsiteId = this.props.navigation.getParam("campsiteId");
     const comments = this.state.comments.filter(
       (comment) => comment.campsiteId === campsiteId
     );
-    const campsiteId = this.props.navigation.getParam("campsiteId");
     const campsite = this.state.campsites.filter(
       (campsite) => campsite.id === campsiteId
     )[0];
     return (
       <ScrollView>
-        <RenderCampsite campsite={campsite} />
+        <RenderCampsite
+          campsite={campsite}
+          favorite={this.state.favorite}
+          markFavorite={() => this.markFavorite()}
+        />
         <RenderComments comments={comments} />
       </ScrollView>
     );
